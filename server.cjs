@@ -7,7 +7,10 @@ require('dotenv').config();
 
 const app = express();
 
-const PORT = process.env.PORT || 3000;
+// Pouze dynamický port pro Railway
+const PORT = process.env.PORT;
+if (!PORT) console.warn("⚠️ PORT není nastaven. Lokálně můžeš testovat: export PORT=3000");
+
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Siky2025!';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'verysecretstring';
 const CONTACT = process.env.CONTACT || 'tvujemail@domena.cz';
@@ -192,15 +195,12 @@ app.get('/admin', requireAdmin, async (req, res) => {
 //////////////////////
 // Admin CRUD
 //////////////////////
-
-// Restaurace add
 app.post('/admin/restaurant/add', requireAdmin, async (req,res)=>{
   const {name, paid_until_date, target_url} = req.body;
   await pool.query('INSERT INTO "Restaurants"(name, paid_until_date, target_url) VALUES($1,$2,$3)', [name, paid_until_date, target_url]);
   res.redirect('/admin');
 });
 
-// Restaurace update
 app.post('/admin/restaurant/update/:id', requireAdmin, async (req,res)=>{
   const {id} = req.params;
   const {name, paid_until_date, target_url} = req.body;
@@ -208,14 +208,12 @@ app.post('/admin/restaurant/update/:id', requireAdmin, async (req,res)=>{
   res.redirect('/admin');
 });
 
-// Chip add
 app.post('/admin/chip/add', requireAdmin, async (req,res)=>{
   const {code, restaurant_id, target_url} = req.body;
   await pool.query('INSERT INTO chips2(code, restaurant_id, target_url) VALUES($1,$2,$3)', [code, restaurant_id, target_url]);
   res.redirect('/admin');
 });
 
-// Chip update
 app.post('/admin/chip/update/:id', requireAdmin, async (req,res)=>{
   const {id} = req.params;
   const {code, restaurant_id, target_url} = req.body;
@@ -230,4 +228,8 @@ app.get('/admin/logout', (req,res)=>{
   req.session.destroy(err=>res.redirect('/admin/login'));
 });
 
-app.listen(PORT, ()=>console.log(`Server běží na portu ${PORT}`));
+// Spuštění serveru
+app.listen(PORT, () => {
+  console.log(`✅ Server běží na portu ${PORT}`);
+  console.log(`🔗 Railway URL bude dostupná po nasazení (v projektu Railway → Services → Live URL)`);
+});
